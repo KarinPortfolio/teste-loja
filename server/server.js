@@ -30,7 +30,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://127.0.0.1:5500",
-      "https://teste-loja-beta.vercel.app/",
+      "https://teste-loja-beta.vercel.app",
       "https://teste-loja-dl7l.onrender.com",
       "null",
     ],
