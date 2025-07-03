@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       id: "prod003",
-      name: "Mogiana",
+      name: "Kafeega",
       category: "Café Superior",
       price: 75.0,
       description: "Lorem ipsum dolor sit amet.",
@@ -48,6 +48,30 @@ document.addEventListener("DOMContentLoaded", () => {
       price: 97.99,
       description: "Lorem ipsum dolor sit amet.",
       imageUrl: "imagens/6.jpg",
+    },
+    {
+      id: "prod006",
+      name: "Caffè",
+      category: "Café Tradicional",
+      price: 55.99,
+      description: "Lorem ipsum dolor sit amet.",
+      imageUrl: "imagens/7.jpg",
+    },
+    {
+      id: "prod006",
+      name: "Matiz",
+      category: "Café Gourmet",
+      price: 92.00,
+      description: "Lorem ipsum dolor sit amet.",
+      imageUrl: "imagens/8.jpg",
+    },
+    {
+      id: "prod006",
+      name: "Gud Coffee",
+      category: "Café Superior",
+      price: 87.99,
+      description: "Lorem ipsum dolor sit amet.",
+      imageUrl: "imagens/9.jpg",
     },
   ];
 
