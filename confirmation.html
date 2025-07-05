@@ -116,7 +116,7 @@
       document.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
 
-        // Função auxiliar para formatar preço (copiada da index.html para consistência)
+        // Função auxiliar para formatar preço
         const formatPrice = (price) =>
           `R$ ${price.toFixed(2).replace(".", ",")}`;
 
@@ -131,8 +131,6 @@
 
         const itemsString = urlParams.get("items");
         const itemsContainer = document.getElementById("confirmed-order-items");
-        // Não precisamos mais de totalConfirmedPrice se o "Total Pago" vem completo da URL
-        // let totalConfirmedPrice = 0; // Remova ou renomeie se for para "Total dos Produtos"
 
         if (itemsString) {
           try {
@@ -143,7 +141,6 @@
                 item.quantity
               }) - ${formatPrice(item.price * item.quantity)}`;
               itemsContainer.appendChild(li);
-              // totalConfirmedPrice += item.price * item.quantity; // Remova se não for mais usar para o "Total dos Produtos"
             });
           } catch (e) {
             console.error("Erro ao parsear itens do pedido:", e);
@@ -154,11 +151,6 @@
           itemsContainer.innerHTML =
             "<li>Nenhum item encontrado no pedido.</li>";
         }
-
-        // Se você tinha um elemento com id "order-summary-total" para o total dos produtos,
-        // pode preenchê-lo aqui, se ainda for relevante. Caso contrário, esta linha pode ser removida.
-        // document.getElementById("order-summary-total").textContent = formatPrice(totalConfirmedPrice);
-
         // --- Puxar o valor total final (com frete) da URL ---
         const grandTotalFromUrl = urlParams.get("grandTotal");
         const orderSummaryGrandTotalElement = document.getElementById(

@@ -1,10 +1,10 @@
 const express = require("express");
-const { Pool } = require("pg"); // Corrigido: 'require = require("pg")' não é necessário
+const { Pool } = require("pg");
 const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 3000; // Use a porta do ambiente ou 3000
+const port = process.env.PORT || 3000;
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -13,7 +13,7 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: parseInt(process.env.DB_PORT, 10) || 5432,
   ssl: {
-    rejectUnauthorized: false, // Necessário para Neon/Render em produção
+    rejectUnauthorized: false,
   },
 });
 
@@ -41,7 +41,7 @@ app.use(
 
 app.use(express.json());
 
-// Função para simular o cálculo de frete baseado no estado
+// Simula cálculo de frete baseado no estado
 function calculateShippingCost(state) {
   let cost = 0;
   switch (state.toUpperCase()) {
@@ -57,27 +57,27 @@ function calculateShippingCost(state) {
     case "PR":
     case "SC":
     case "RS":
-      cost = 22.0; // Região Sul
+      cost = 22.0;
       break;
     case "BA":
     case "PE":
     case "CE":
-      cost = 25.0; // Nordeste
+      cost = 25.0;
       break;
     default:
-      cost = 30.0; // Outros estados
+      cost = 30.0;
       break;
   }
-  // Exemplo: Frete grátis para compras acima de R$200 (você pode usar o cartTotal passado aqui)
-  // if (cartTotal >= 200) {
-  //   cost = 0;
-  // }
+  // Frete grátis para compras acima de R$200
+  if (cartTotal >= 200) {
+    cost = 0;
+  }
   return cost;
 }
 
-// NOVO ENDPOINT PARA CALCULAR O FRETE
+// Calcular frete
 app.post("/api/calculate-shipping", (req, res) => {
-  const { cep, cartTotal } = req.body; // 'cartTotal' pode ser usado para regras de frete grátis
+  const { cep, cartTotal } = req.body;
 
   if (!cep) {
     return res
@@ -86,9 +86,6 @@ app.post("/api/calculate-shipping", (req, res) => {
   }
 
   // Simulação de busca de estado com base nos primeiros dígitos do CEP
-  // Em uma aplicação real, você faria uma chamada para a ViaCEP AQUI NO BACKEND
-  // para obter o estado real com base no CEP.
-  // Mapeamento mais completo dos intervalos de CEP para estados brasileiros
   const cepStateMap = [
     {
       state: "SP",
@@ -128,7 +125,7 @@ app.post("/api/calculate-shipping", (req, res) => {
     },
   ];
 
-  let state = "XX"; // Estado desconhecido para simulação
+  let state = "XX"; // Estado desconhecido
   const cepNum = parseInt(cep.replace(/\D/g, "").substring(0, 5), 10);
 
   for (const entry of cepStateMap) {
@@ -149,7 +146,7 @@ app.post("/api/calculate-shipping", (req, res) => {
   });
 });
 
-// ENDPOINT DE CHECKOUT (VERSÃO ATUALIZADA COM FRETE)
+// checkout
 app.post("/api/checkout", async (req, res) => {
   const client = await pool.connect();
   try {
@@ -157,8 +154,8 @@ app.post("/api/checkout", async (req, res) => {
       customerName,
       customerEmail,
       customerAddress,
-      totalAmount, // Este é o total dos produtos (sem frete)
-      shippingCost, // NOVO: Custo do frete enviado do frontend
+      totalAmount, // total dos produtos (sem frete)
+      shippingCost, // Custo do frete
       orderItems,
       orderId,
     } = req.body;
@@ -219,7 +216,7 @@ app.post("/api/checkout", async (req, res) => {
     client.release();
   }
 });
-// Listener para iniciar o servidor
+// iniciar o servidor
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
