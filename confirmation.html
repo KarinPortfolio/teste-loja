@@ -20,19 +20,25 @@
       <div>
         <h1>🎉 Pedido Confirmado!</h1>
         <p>
-          <div class="container">
-            <h1>Pague com Pix!</h1>
-            <p>Escaneie o QR Code abaixo para realizar o pagamento:</p>
+          <!-- Mensagem de confirmação inicial -->
+          🎉 Pedido Confirmado!
+        </p>
+        <div class="container">
+          <h1>Pague com Pix!</h1>
+          <p>Escaneie o QR Code abaixo para realizar o pagamento:</p>
 
-            <img
-              src="https://gerarqrcodepix.com.br/api/v1?nome=Fulano Tal&cidade=Sao Paulo&chave=suachave@email.com&valor=10.50&saida=qr&tamanho=250"
-              alt="QR Code Pix"
-              width="200"
-              height="200"
-            />
+          <img
+            src="https://gerarqrcodepix.com.br/api/v1?nome=Fulano Tal&cidade=Sao Paulo&chave=suachave@email.com&valor=10.50&saida=qr&tamanho=250"
+            alt="QR Code Pix"
+            width="200"
+            height="200"
+          />
 
-            <p>Ou utilize a opção "Pix Copia e Cola" no seu aplicativo bancário.</p>
-          </div>
+          <p>
+            Ou utilize a opção "Pix Copia e Cola" no seu aplicativo bancário.
+          </p>
+        </div>
+        <p>
           Obrigado pela sua compra na Cafélier! Seu pedido foi recebido e está
           sendo processado.
         </p>
@@ -111,7 +117,8 @@
         const urlParams = new URLSearchParams(window.location.search);
 
         // Função auxiliar para formatar preço (copiada da index.html para consistência)
-        const formatPrice = (price) => `R$ ${price.toFixed(2).replace(".", ",")}`;
+        const formatPrice = (price) =>
+          `R$ ${price.toFixed(2).replace(".", ",")}`;
 
         document.getElementById("order-id").textContent =
           urlParams.get("orderId") || "#N/A";
@@ -132,9 +139,9 @@
             const items = JSON.parse(decodeURIComponent(itemsString));
             items.forEach((item) => {
               const li = document.createElement("li");
-              li.textContent = `${item.name} (x${item.quantity}) - ${formatPrice(
-                item.price * item.quantity
-              )}`;
+              li.textContent = `${item.name} (x${
+                item.quantity
+              }) - ${formatPrice(item.price * item.quantity)}`;
               itemsContainer.appendChild(li);
               // totalConfirmedPrice += item.price * item.quantity; // Remova se não for mais usar para o "Total dos Produtos"
             });
@@ -154,7 +161,9 @@
 
         // --- Puxar o valor total final (com frete) da URL ---
         const grandTotalFromUrl = urlParams.get("grandTotal");
-        const orderSummaryGrandTotalElement = document.getElementById("order-summary-grand-total");
+        const orderSummaryGrandTotalElement = document.getElementById(
+          "order-summary-grand-total"
+        );
         const qrCodeImage = document.querySelector(".container img");
 
         if (grandTotalFromUrl) {
@@ -165,10 +174,15 @@
           // Atualizar o QR Code com o valor total final
           if (qrCodeImage) {
             const currentSrc = qrCodeImage.src;
-            const newValorParam = `valor=${parseFloat(grandTotalFromUrl).toFixed(2)}`;
-            
+            const newValorParam = `valor=${parseFloat(
+              grandTotalFromUrl
+            ).toFixed(2)}`;
+
             // Usar regex para substituir o valor no src do QR Code
-            const updatedSrc = currentSrc.replace(/valor=[\d.]+/g, newValorParam);
+            const updatedSrc = currentSrc.replace(
+              /valor=[\d.]+/g,
+              newValorParam
+            );
             qrCodeImage.src = updatedSrc;
           }
         } else {

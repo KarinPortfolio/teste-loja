@@ -42,21 +42,7 @@ nav {
   gap: 20px;
   justify-content: center;
   flex-wrap: wrap;
-}
 
-.nav-ul li {
-  cursor: pointer;
-  padding: 8px 15px;
-  transition: background-color 0.3s ease;
-  border-radius: 5px;
-}
-
-.nav-ul li:hover {
-  background-color: #f0f0f0;
-}
-
-.nav-ul li.active {
-  /* Estilo para a categoria selecionada */
   background-color: #e0e0e0;
   font-weight: bold;
   text-decoration: underline;

@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
       imageUrl: "imagens/6.jpg",
     },
     {
-      id: "prod006",
+      id: "prod007",
       name: "Caffè",
       category: "Café Tradicional",
       price: 55.99,
@@ -58,15 +58,15 @@ document.addEventListener("DOMContentLoaded", () => {
       imageUrl: "imagens/7.jpg",
     },
     {
-      id: "prod006",
+      id: "prod008",
       name: "Matiz",
       category: "Café Gourmet",
-      price: 92.00,
+      price: 92.0,
       description: "Lorem ipsum dolor sit amet.",
       imageUrl: "imagens/8.jpg",
     },
     {
-      id: "prod006",
+      id: "prod009",
       name: "Gud Coffee",
       category: "Café Superior",
       price: 87.99,

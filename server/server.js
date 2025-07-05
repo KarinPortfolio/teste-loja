@@ -11,7 +11,7 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT || 5432,
+  port: parseInt(process.env.DB_PORT, 10) || 5432,
   ssl: {
     rejectUnauthorized: false, // Necessário para Neon/Render em produção
   },
@@ -32,7 +32,7 @@ app.use(
       "http://127.0.0.1:5500",
       "https://teste-loja-beta.vercel.app",
       "https://teste-loja-dl7l.onrender.com",
-      "null", // 'null' é para testar arquivos locais, remover em produção se não for mais necessário
+      ...(process.env.NODE_ENV !== "production" ? ["null"] : []), // 'null' apenas em desenvolvimento
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -88,17 +88,65 @@ app.post("/api/calculate-shipping", (req, res) => {
   // Simulação de busca de estado com base nos primeiros dígitos do CEP
   // Em uma aplicação real, você faria uma chamada para a ViaCEP AQUI NO BACKEND
   // para obter o estado real com base no CEP.
-  let state = "";
-  const firstTwoDigits = cep.substring(0, 2);
-  if (firstTwoDigits >= "01" && firstTwoDigits <= "09") state = "SP";
-  else if (firstTwoDigits >= "20" && firstTwoDigits <= "26") state = "RJ";
-  else if (firstTwoDigits >= "30" && firstTwoDigits <= "39") state = "MG";
-  else if (firstTwoDigits >= "80" && firstTwoDigits <= "87") state = "PR";
-  else state = "XX"; // Estado desconhecido para simulação
+  // Mapeamento mais completo dos intervalos de CEP para estados brasileiros
+  const cepStateMap = [
+    {
+      state: "SP",
+      ranges: [
+        [1000, 19999],
+        [11000000, 19999999],
+      ],
+    },
+    { state: "RJ", ranges: [[20000, 28999]] },
+    { state: "ES", ranges: [[29000, 29999]] },
+    { state: "MG", ranges: [[30000, 39999]] },
+    { state: "BA", ranges: [[40000, 48999]] },
+    { state: "SE", ranges: [[49000, 49999]] },
+    { state: "PE", ranges: [[50000, 56999]] },
+    { state: "AL", ranges: [[57000, 57999]] },
+    { state: "PB", ranges: [[58000, 58999]] },
+    { state: "RN", ranges: [[59000, 59999]] },
+    { state: "CE", ranges: [[60000, 63999]] },
+    { state: "PI", ranges: [[64000, 64999]] },
+    { state: "PA", ranges: [[66000, 68899]] },
+    { state: "AP", ranges: [[68900, 68999]] },
+    {
+      state: "AM",
+      ranges: [
+        [69000, 69299],
+        [69400, 69899],
+      ],
+    },
+    { state: "RR", ranges: [[69300, 69399]] },
+    { state: "AC", ranges: [[69900, 69999]] },
+    {
+      state: "DF",
+      ranges: [
+        [70000, 73699],
+        [73000, 73699],
+      ],
+    },
+  ];
+
+  let state = "XX"; // Estado desconhecido para simulação
+  const cepNum = parseInt(cep.replace(/\D/g, "").substring(0, 5), 10);
+
+  for (const entry of cepStateMap) {
+    for (const [start, end] of entry.ranges) {
+      if (cepNum >= start && cepNum <= end) {
+        state = entry.state;
+        break;
+      }
+    }
+    if (state !== "XX") break;
+  }
 
   const shippingCost = calculateShippingCost(state);
 
-  res.status(200).json({ shippingCost: shippingCost });
+  res.json({
+    state,
+    shippingCost,
+  });
 });
 
 // ENDPOINT DE CHECKOUT (VERSÃO ATUALIZADA COM FRETE)
@@ -112,15 +160,14 @@ app.post("/api/checkout", async (req, res) => {
       totalAmount, // Este é o total dos produtos (sem frete)
       shippingCost, // NOVO: Custo do frete enviado do frontend
       orderItems,
+      orderId,
     } = req.body;
 
     // O total_amount no DB deve ser o total dos produtos + frete
-    const finalTotalAmount =
-      parseFloat(totalAmount) + parseFloat(shippingCost || 0);
-
-    const orderId = `PED-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-    await client.query("BEGIN");
+    const parsedShippingCost = Number.isFinite(Number(shippingCost))
+      ? Number(shippingCost)
+      : 0;
+    const finalTotalAmount = parseFloat(totalAmount) + parsedShippingCost;
 
     const insertOrderQuery = `
       INSERT INTO orders (order_id, customer_name, customer_email, customer_address, total_amount, shipping_cost)
@@ -132,11 +179,11 @@ app.post("/api/checkout", async (req, res) => {
       customerName,
       customerEmail,
       customerAddress,
-      finalTotalAmount, // Total FINAL (produtos + frete)
-      shippingCost || 0, // Custo do frete
+      finalTotalAmount,
+      parsedShippingCost,
     ];
+    await client.query("BEGIN");
     await client.query(insertOrderQuery, orderValues);
-
     for (const item of orderItems) {
       const insertItemQuery = `
         INSERT INTO order_items (order_id, product_id, product_name, quantity, price_per_unit, line_total)
@@ -146,9 +193,9 @@ app.post("/api/checkout", async (req, res) => {
         orderId,
         item.id,
         item.name,
-        item.quantity,
-        item.price,
-        item.price * item.quantity,
+        Number(item.quantity),
+        Number(item.price),
+        Number(item.price) * Number(item.quantity),
       ];
       await client.query(insertItemQuery, itemValues);
     }
@@ -159,7 +206,11 @@ app.post("/api/checkout", async (req, res) => {
       .status(200)
       .json({ message: "Pedido salvo com sucesso!", orderId: orderId });
   } catch (error) {
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Erro ao executar ROLLBACK:", rollbackError);
+    }
     console.error("Erro ao processar o checkout:", error);
     res
       .status(500)
@@ -168,7 +219,6 @@ app.post("/api/checkout", async (req, res) => {
     client.release();
   }
 });
-
 // Listener para iniciar o servidor
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
